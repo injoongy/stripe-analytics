@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "typeRoots": ["./node_modules/@types", "../web/node_modules/@types"],
+    "paths": {
+      "drizzle-orm": ["../web/node_modules/drizzle-orm"],
+      "drizzle-orm/*": ["../web/node_modules/drizzle-orm/*"]
+    }
+  },
+  "include": ["server/**/*.ts"]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "stripe-analytics-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "web",
+    "worker"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w web\" \"npm run start -w worker\"",
+    "dev:web": "npm run dev -w web",
+    "dev:worker": "npm run start -w worker",
+    "build": "npm run build -w web",
+    "install:all": "npm install && npm install -w web && npm install -w worker"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
+

@@ -1,0 +1,68 @@
+import ResetPasswordEmail from "@/components/emails/reset-password";
+import VerifyPassword from "@/components/emails/verify-password";
+import db from "@/db";
+import * as schema from "@/db/schema";
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { nextCookies } from "better-auth/next-js";
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_KEY);
+
+export const auth = betterAuth({
+  database: drizzleAdapter(db, {
+    provider: "pg",
+    schema,
+  }),
+  basePath: "/api/auth",
+  emailVerification: {
+    sendOnSignUp: true,
+    sendVerificationEmail: async ({ user, url }) => {
+      if (!user.email) {
+        console.warn("Cannot send verification email: missing user email");
+        return;
+      }
+
+      const result = await resend.emails.send({
+        from: 'Guru Catcher <onboarding@resend.dev>',
+        to: [user.email],
+        subject: 'Confirm your email',
+        react: VerifyPassword({
+          username: user.name ?? user.email,
+          verifyUrl: url,
+        }),
+      });
+
+      console.log('Verification email requested', {
+        success: Boolean(result?.data?.id),
+        userId: user.id,
+      })
+    }
+  },
+  emailAndPassword: {
+    enabled: true,
+    sendOnSignUp: true,
+    async sendResetPassword({ user, url }) {
+      if (!user.email) {
+        console.warn("Cannot send reset password email: missing user email");
+        return;
+      }
+
+      const result = await resend.emails.send({
+        from: 'Guru Catcher <onboarding@resend.dev>',
+        to: [user.email],
+        subject: 'Reset your password',
+        react: ResetPasswordEmail({
+          username: user.name ?? user.email,
+          resetUrl: url,
+        }),
+      });
+
+      console.log('Password reset email requested', {
+        success: Boolean(result?.data?.id),
+        userId: user.id,
+      })
+    },
+  },
+  plugins: [nextCookies()]
+});
