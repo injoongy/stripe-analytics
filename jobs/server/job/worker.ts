@@ -8,7 +8,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { nanoid } from "nanoid";
 import { Pool } from "pg";
 import { scrapedData } from "../db/schema";
-import getStripeMetrics from "../job/metrics";
+import getStripeMetrics from "./metrics";
 import { getConnection } from "./env";
 import { STRIPE_QUEUE_NAME, stripeQueue } from "./queue";
 
@@ -50,7 +50,14 @@ async function scrapeStripe({ stripeApiKey, userId, jobId }: { stripeApiKey: str
   return result;
 }
 
-const concurrency = Number(process.env.WORKER_CONCURRENCY ?? 3);
+// Validate and set concurrency with fallback
+const rawConcurrency = Number(process.env.WORKER_CONCURRENCY ?? 3);
+const concurrency = Number.isFinite(rawConcurrency) && rawConcurrency > 0 ? rawConcurrency : 3;
+
+// Validate Redis URL
+if (!process.env.REDIS_URL) {
+  throw new Error("REDIS_URL environment variable is required");
+}
 
 console.log("🚀 Worker starting with configuration:");
 console.log("- Queue:", STRIPE_QUEUE_NAME);

@@ -1,5 +1,6 @@
 import ApiForm from "@/components/api-form";
 import StripeResults from "@/components/stripe-results";
+import { Suspense } from "react";
 
 export default function Dashboard() {
     return (

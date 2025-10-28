@@ -14,7 +14,7 @@ export async function NavBar({ className }: NavBarProps) {
   const items = session
     ? [
         { name: 'Home', url: '/' },
-        { name: 'Dashboard', url: '/dashboard' },
+        { name: 'Jobs', url: '/dashboard' },
       ]
     : [
         { name: 'Home', url: '/' },

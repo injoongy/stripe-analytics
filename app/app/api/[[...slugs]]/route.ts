@@ -80,12 +80,16 @@ const app = new Elysia({ prefix: "/api" })
     }, { auth: true })
     .get('/stripe/data', async ({ user }) => {
         // Fetch all scraped data for the authenticated user
-        const data = await db
-            .select()
-            .from(scrapedData)
-            .where(eq(scrapedData.userId, user.id))
-            .orderBy(desc(scrapedData.createdAt))
-            .limit(10);
+
+        const data = await db.transaction(async (tx) => {
+            const data = await tx.select().from(scrapedData)
+                .where(eq(scrapedData.userId, user.id))
+                .orderBy(desc(scrapedData.createdAt))
+                .limit(10);
+
+
+            return data;
+        });
 
         return {
             data,
@@ -95,17 +99,20 @@ const app = new Elysia({ prefix: "/api" })
     .get('/stripe/data/:jobId', async ({ params, user }) => {
         const { jobId } = params;
 
-        // Fetch specific scraped data by job ID for the authenticated user
-        const data = await db
-            .select()
-            .from(scrapedData)
-            .where(
-                and(
-                    eq(scrapedData.userId, user.id),
-                    eq(scrapedData.jobId, jobId)
+        const data = await db.transaction(async (tx) => {
+            const data = await tx.select()
+                .from(scrapedData)
+                .where(
+                    and(
+                        eq(scrapedData.userId, user.id),
+                        eq(scrapedData.jobId, jobId)
+                    )
                 )
-            )
-            .limit(1);
+                .limit(1);
+
+
+            return data;
+        });
 
         if (!data.length) {
             return { status: 404, error: "Data not found" };

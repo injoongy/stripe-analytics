@@ -3,15 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "workspaces": [
-    "web",
-    "worker"
+    "app",
+    "jobs"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev -w web\" \"npm run start -w worker\"",
-    "dev:web": "npm run dev -w web",
-    "dev:worker": "npm run start -w worker",
-    "build": "npm run build -w web",
-    "install:all": "npm install && npm install -w web && npm install -w worker"
+    "dev": "concurrently \"npm run dev -w app\" \"npm run start -w jobs\"",
+    "dev:app": "npm run dev -w app",
+    "dev:jobs": "npm run start -w jobs",
+    "build": "npm run build -w app",
+    "install:all": "npm install && npm install -w app && npm install -w jobs"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
