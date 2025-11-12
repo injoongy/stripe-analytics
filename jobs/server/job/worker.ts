@@ -65,7 +65,16 @@ console.log("- Concurrency:", concurrency);
 console.log("- Redis URL:", process.env.REDIS_URL ? "✅ Set" : "❌ Missing");
 console.log("- Database URL:", process.env.DATABASE_URL ? "✅ Set" : "❌ Missing");
 console.log("- Environment:", process.env.NODE_ENV || "development");
-console.log("- Connection config:", connection);
+
+// Log Redis connection details (masked)
+if (process.env.REDIS_URL) {
+  try {
+    const redisUrl = new URL(process.env.REDIS_URL);
+    console.log(`- Redis Host: ${redisUrl.hostname}:${redisUrl.port || 'default'}`);
+  } catch (e) {
+    console.log("- Redis URL format: Invalid");
+  }
+}
 
 const worker = new Worker(
   STRIPE_QUEUE_NAME,

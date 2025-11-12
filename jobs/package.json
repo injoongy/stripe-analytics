@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "tsx server/job/worker.ts"
+    "start": "bun server/job/worker.ts"
   },
   "dependencies": {
     "bullmq": "^5.58.7",
@@ -16,6 +16,7 @@
     "tsx": "^4.20.5"
   },
   "devDependencies": {
+    "@flydotio/dockerfile": "^0.7.10",
     "@types/node": "^24.7.2"
   }
 }
