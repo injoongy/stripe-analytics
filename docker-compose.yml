@@ -1,0 +1,89 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: stripe-analytics-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: database
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - stripe-analytics
+
+  redis:
+    image: redis:7-alpine
+    container_name: stripe-analytics-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - stripe-analytics
+
+  app:
+    image: node:20-alpine
+    container_name: stripe-analytics-app
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/database
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=development
+    env_file:
+      - ./app/.env
+    volumes:
+      - ./app:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - stripe-analytics
+    command: sh -c "npm install && npm run dev"
+
+  jobs:
+    image: node:20-alpine
+    container_name: stripe-analytics-jobs
+    working_dir: /jobs
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/database
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=development
+    env_file:
+      - ./jobs/.env
+    volumes:
+      - ./jobs:/jobs
+      - /jobs/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - stripe-analytics
+    command: sh -c "npm install && npm start"
+
+networks:
+  stripe-analytics:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
