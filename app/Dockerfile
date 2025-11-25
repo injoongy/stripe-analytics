@@ -12,6 +12,10 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Accept build arguments for NEXT_PUBLIC_ variables
+ARG NEXT_PUBLIC_APP_URL
+ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
+
 # Build the Next.js application
 RUN npm run build
 
@@ -31,6 +35,14 @@ RUN addgroup --system --gid 1001 nodejs && \
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+
+# Copy drizzle config and schema for migrations
+COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
+COPY --from=builder /app/db ./db
+COPY --from=builder /app/package.json ./package.json
+
+# Install production dependencies (including drizzle-kit for migrations)
+RUN npm install --omit=dev
 
 # Set ownership to nextjs user
 RUN chown -R nextjs:nodejs /app

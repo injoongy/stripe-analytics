@@ -6,7 +6,21 @@ const connection = {
   url: process.env.REDIS_URL,
 };
 
-export const stripeQueue = new Queue(STRIPE_QUEUE_NAME, { connection });
+// Lazy initialization to avoid connecting during build
+let queueInstance: Queue | null = null;
+export const getStripeQueue = () => {
+  if (!queueInstance && process.env.REDIS_URL) {
+    queueInstance = new Queue(STRIPE_QUEUE_NAME, { connection });
+  }
+  return queueInstance!;
+};
+
+// Keep backward compatibility
+export const stripeQueue = new Proxy({} as Queue, {
+  get(_, prop) {
+    return getStripeQueue()[prop as keyof Queue];
+  }
+});
 
 export const defaultJobOpts: JobsOptions = {
   attempts: 1,
