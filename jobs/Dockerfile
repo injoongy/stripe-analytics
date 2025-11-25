@@ -34,6 +34,10 @@ FROM base
 # Copy built application
 COPY --from=build /app /app
 
+# Copy startup script
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
-CMD [ "bun", "run", "start" ]
+CMD [ "/app/start.sh" ]
