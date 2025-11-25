@@ -12,35 +12,52 @@ A full-stack SaaS analytics platform for Stripe with background job processing u
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 20+
-- PostgreSQL database
-- Redis instance
+- Docker & Docker Compose
 
-### Installation
+### Quick Start
 
 ```bash
-# Install all dependencies
-npm run install:all
+# Clone and setup
+git clone <your-repo-url>
+cd stripe-analytics
 
 # Set up environment variables
-cp web/.env.example web/.env
-cp worker/.env.example worker/.env
+cp app/.env.example app/.env
+cp jobs/.env.example jobs/.env
 
-# Configure your .env files with actual values
-
-# Run database migrations
-cd web && npx drizzle-kit push
+# Start everything
+docker-compose up
 ```
 
-### Development
+That's it! Your app will be running at `http://localhost:3000`
+
+### Common Commands
 
 ```bash
-# Run both web and worker together
-npm run dev
+# Start all services
+docker-compose up
 
-# Or run separately
-npm run dev:web      # Start Next.js dev server
-npm run dev:worker   # Start background worker
+# Start in background
+docker-compose up -d
+
+# Stop all services
+docker-compose down
+
+# View logs
+docker-compose logs -f
+
+# Restart services
+docker-compose restart
+```
+
+### First Time Setup
+
+Run database migrations:
+
+```bash
+docker exec -it stripe-analytics-app sh
+npx drizzle-kit push
+exit
 ```
 
 ## 📁 Project Structure
@@ -59,20 +76,29 @@ npm run dev:worker   # Start background worker
 
 ## 🔧 Environment Variables
 
-### Web (.env)
+### Using Docker (Development)
+When using Docker Compose, `DATABASE_URL` and `REDIS_URL` are automatically configured. You only need to set:
+
+**app/.env**
 ```env
-DATABASE_URL=postgresql://user:password@host:port/database
+# Database & Redis (auto-configured in docker-compose.yml)
+# DATABASE_URL=postgresql://postgres:postgres@postgres:5432/database
+# REDIS_URL=redis://redis:6379
+
+# Required - Your configuration
 BETTER_AUTH_SECRET=your-secret-here
 CLIENT_URL=http://localhost:3000
 RESEND_KEY=your-resend-api-key
-REDIS_URL=redis://localhost:6379
 STRIPE_SECRET_ENCRYPTION_KEY=your-32-byte-hex-key
 ```
 
-### Worker (.env)
+**jobs/.env**
 ```env
-DATABASE_URL=postgresql://user:password@host:port/database
-REDIS_URL=redis://localhost:6379
+# Database & Redis (auto-configured in docker-compose.yml)
+# DATABASE_URL=postgresql://postgres:postgres@postgres:5432/database
+# REDIS_URL=redis://redis:6379
+
+# Required - Your configuration
 WORKER_CONCURRENCY=3
 STRIPE_SECRET_ENCRYPTION_KEY=your-32-byte-hex-key
 ```
