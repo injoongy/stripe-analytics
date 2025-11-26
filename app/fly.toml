@@ -1,13 +1,16 @@
-# fly.toml app configuration file generated for stripe-an-jobs on 2025-11-25T15:35:05-08:00
+# fly.toml app configuration file generated for stripe-analytics-app on 2025-11-25T14:38:06-08:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'stripe-analytics-jobs'
+app = 'stripe-analytics-app'
 primary_region = 'sjc'
 
 [build]
   dockerfile = './Dockerfile'
+
+[deploy]
+  release_command = 'sh -c "if [ -n \"$DATABASE_URL\" ]; then npx drizzle-kit push; else echo \"Skipping migration - DATABASE_URL not set\"; fi"'
 
 [http_service]
   internal_port = 3000
