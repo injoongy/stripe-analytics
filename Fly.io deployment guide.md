@@ -1,6 +1,6 @@
-# Deploying to Fly.io
+# Deploying to Fly.io 🎈
 
-In order to deploy this monorepo to Fly.io, we'll need to deploy it as two separate apps - one for the frontend (/app) and one for the backend (/jobs).
+In order to deploy this monorepo to Fly.io, we'll need to deploy it as two separate apps - one for the frontend (`app`) and one for the backend (`jobs`).
 There are `fly.toml` files in each directory that should be ready to go.
 
 ## The Prerequisites
@@ -26,6 +26,7 @@ Tigris:       <none>                    (not requested)
 ```
 If you'd like to change any of these settings, feel free to hit `y` - the only ones you may want to tweak are the name and the region.
 4. Once you're done tweaking any settings, the deployment should start. You'll probably see some warnings related to a lack of the needed env vars, but we can set those in a little bit.
+
 5. Hopefully, the deployment completes successfully and you see something like:
 ```sh
 🎉  SUCCESS! Your app is live and ready to use!  🎉
@@ -50,7 +51,8 @@ Your database is billed at $0.20 per 100K commands. If you're using Sidekiq or B
 Redis database stripe-analytics-jobs-redis is set on stripe-analytics-jobs as the REDIS_URL environment variable
 Wrote config file fly.toml
 ```
-Make a note of that Redis connection string - we'll need it for setting env vars later.
+Make a note of that Redis connection string - we'll need it for setting env vars later. If you don't see these Redis messages, then you'll need to create the Upstash Redis DB manually. After the deploy, run `fly redis create` to do that.
+
 5. Hopefully, the deploy completes successfully. If so, great - let's keep moving!
 
 ## The Database (Fly Managed Postgres)
@@ -78,19 +80,20 @@ RESEND_KEY=<your-resend-key-here>
 REDIS_URL=<your redis url, probably something like redis://default:<password>@fly-<app-name>-redis.upstash.io:6379>
 STRIPE_SECRET_ENCRYPTION_KEY=<your-stripe-key>
 ```
-Then click "Set secrets". IMPORTANT: this only "stages" the secrets - the app now needs a re-deployment in order for the app to pick up the new secrets. Click "Deploy Secrets" to re-deploy the app.
-4. Do the same thing with the backend Fly app (`stripe-analytics-jobs`). Go to the Fly dashboard and the "Secrets" tab, then add the secrets. The `REDIS_URL` should already be set.
+Then click "Set secrets". IMPORTANT: this only "stages" the secrets - the app now needs a re-deployment in order for the app to pick up the new secrets. But don't click "Deploy secrets" here, since we should actually re-run a full deploy in order to run the release_command.
+4. Do the same thing with the backend Fly app (`stripe-analytics-jobs`). Go to the Fly dashboard and the "Secrets" tab, then add the secrets. The `REDIS_URL` should already be set, but if it isn't, add it here.
 ```sh
 DATABASE_URL=postgresql://fly-user:<password>@pgbouncer.abcdefg.flympg.net/fly-db
 WORKER_CONCURRENCY=3
 STRIPE_SECRET_ENCRYPTION_KEY=<your-stripe-key>
+REDIS_URL=<your redis url, if it hasn't already been set - probably something like redis://default:<password>@fly-<app-name>-redis.upstash.io:6379>
 ```
-Deploy the secrets.
 
-5. We need the database migration to run, which means that we should also fully re-deploy the frontend app. Go to `/app` and run `fly deploy`. This should run the `release_command` defined in the `app/fly.toml`, and set up the database properly.
-6. For good measure, re-deploy the backend app as well - go to `/jobs` and run `fly deploy`.
-7. Now, navigate to your deployed app in the browser - find the hostname for the frontend app and open it. Try signing up, then pasting in the Stripe key - it should all work.
-8. Try going to your Upstash Redis database in your Fly dashboard and data should eventually start populating.
-9. You can also go to your Fly MPG database in the Fly dashboard and click over to the "Explore" page - data should populate once you sign up a user. You can see it in the "Tables" tab.
+5. Now, we need to set the `NEXT_PUBLIC_APP_URL` as a build argument in our `app/fly.toml`, since NextJS needs that variable at build time. Go to `app/fly.toml`, uncomment the `[build.args]` section, and paste the hostname of the frontend app as the value - https://stripe-analytics-app.fly.dev, if you're using the default name.
+6. Now we need to deploy these secrets, and deploy the build argument change for our frontend app, and we also need the database migration to run. Let's fully re-deploy the frontend app. Go to `/app` and run `fly deploy`. This should run the `release_command` defined in the `app/fly.toml`, and set up the database properly, in addition to setting all of those secrets we just staged.
+7. Re-deploy the backend app as well - go to `/jobs` and run `fly deploy` to set the secrets we staged for the backend app.
+8. Now, navigate to your deployed app in the browser - find the hostname for the frontend app and open it. Try signing up, then pasting in the Stripe key - it should all work.
+9. Try going to your Upstash Redis database in your Fly dashboard and data should eventually start populating.
+10. You can also go to your Fly MPG database in the Fly dashboard and click over to the "Explore" page - data should populate once you sign up a user. You can see it in the "Tables" tab.
 
 If things aren't working, try looking at the "Logs & Errors" tab in the app's dashboard UI.

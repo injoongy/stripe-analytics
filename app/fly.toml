@@ -8,6 +8,8 @@ primary_region = 'sjc'
 
 [build]
   dockerfile = './Dockerfile'
+  # [build.args]
+  #   NEXT_PUBLIC_APP_URL = ""
 
 [deploy]
   release_command = 'sh -c "if [ -n \"$DATABASE_URL\" ]; then npx drizzle-kit push; else echo \"Skipping migration - DATABASE_URL not set\"; fi"'
