@@ -25,6 +25,7 @@ Redis:        <none>                    (not requested)
 Tigris:       <none>                    (not requested)
 ```
 If you'd like to change any of these settings, feel free to hit `y` - the only ones you may want to tweak are the name and the region.
+
 4. Once you're done tweaking any settings, the deployment should start. You'll probably see some warnings related to a lack of the needed env vars, but we can set those in a little bit.
 
 5. Hopefully, the deployment completes successfully and you see something like:
@@ -53,17 +54,17 @@ Wrote config file fly.toml
 ```
 Make a note of that Redis connection string - we'll need it for setting env vars later. If you don't see these Redis messages, then you'll need to create the Upstash Redis DB manually. After the deploy, run `fly redis create` to do that.
 
-5. Hopefully, the deploy completes successfully. If so, great - let's keep moving!
+5. Hopefully, the deploy completes successfully. If so, great - let's keep moving.
 
 ## The Database (Fly Managed Postgres)
-We've got our NextJS frontend and we've got our backend jobs processor with Redis - now we just need our database up and running. We'll use Fly Managed Postgres for that!
+We've got our NextJS frontend and we've got our backend jobs processor with Redis - now we just need our database up and running. We'll use Fly Managed Postgres for that.
 
 1. Go back to the repo's root directory, `stripe-analytics/`. From there, run `fly mpg create` to create your MPG cluster.
 2. Enter a database name (say, `stripe-analytics-db`) and choose the Fly org where your MPG cluster should live - make sure this is the same org that the frontend and backend apps are on (if we haven't changed any settings, it should be our personal one).
 3. Choose a region for your cluster - ideally it's as close to our frontend and backend apps as possible. Let's choose `sjc`.
 4. Now we need to choose a pricing plan for our cluster - Basic should be fine.
 5. Afterwards, the deploy should start. You should see a message indicating that you can see the cluster in the Fly dashboard UI - follow the link to look at the cluster in the browser.
-6. Once the cluster state has gone from "Initializing" to "Ready", we're set!
+6. Once the cluster state has gone from "Initializing" to "Ready", we're set.
 
 ## The Glue (putting it all together)
 We're almost done! Now, we need to set the env vars on our apps so that everything talks to each other properly. You can set secrets through the Fly dashboard or through the `flyctl` CLI - just to switch things up, let's do this all in the dashboard.
